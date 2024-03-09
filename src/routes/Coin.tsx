@@ -1,6 +1,28 @@
-import { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import {
+  Link,
+  Route,
+  Switch,
+  useLocation,
+  useParams,
+  useRouteMatch,
+} from "react-router-dom";
 import styled from "styled-components";
+import Price from "./Price";
+import Chart from "./Chart";
+import Title from "./Title";
+import { useQuery } from "@tanstack/react-query";
+import { fetchCoinInfo, fetchCoinTickers } from "./api";
+import { Helmet } from "react-helmet";
+import { theme } from "../theme";
+import CandleChart from "./CandleChart";
+import LinkURL from "./Link";
+import {
+  faYoutube,
+  faFacebook,
+  faReddit,
+  faGithub,
+} from "@fortawesome/free-brands-svg-icons";
+import { faGlobe } from "@fortawesome/free-solid-svg-icons";
 
 interface Params {
   coinId: string;
@@ -9,49 +31,331 @@ interface Params {
 interface State {
   name: string;
 }
+
 const Container = styled.div`
-  padding: 0px 20px;
-  max-width: 480px;
+  padding: 10px 20px;
+  max-width: 600px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 `;
 
-const Header = styled.header`
-  height: 10vh;
+const HeaderWrapper = styled.div`
+  width: 600px;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
 `;
 
-const Title = styled.h1`
-  font-size: 48px;
-  color: ${(props) => props.theme.accentColor};
+const HeaderWrapperLeft = styled.div`
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
+
+const Header = styled.header`
+  display: flex;
+  width: 100%;
+  position: relative;
+  justify-content: center;
+`;
+
+const Img = styled.img`
+  width: 70px;
+  height: 70px;
+`;
+
+const InfoBox = styled.div`
+  height: 100px;
+  width: 600px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: ${(props) => props.theme.infoBox};
+  border-radius: 15px;
+  justify-content: space-around;
+  margin-bottom: 15px;
+`;
+
+const InfoBoxItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  span:first-child {
+    font-size: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+`;
+
+const InfoBoxItem2 = styled.div`
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+`;
+
+const DescriptionTitle = styled.div`
+  width: 580px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+`;
+
+const Description = styled.p`
+  padding: 0 5px;
+  word-break: break-all;
+`;
+
+const Tabs = styled.div`
+  width: 600px;
+  display: flex;
+  justify-content: space-between;
+`;
+
+const Tab = styled.div<{ isActive: boolean }>`
+  width: 200px;
+  height: 50px;
+  background-color: ${(props) => props.theme.infoBox};
+  border-radius: 15px;
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: ${(props) =>
+    props.isActive ? props.theme.accentColor : props.theme.textColor};
+  &:hover {
+    color: ${(props) => props.theme.accentColor};
+  }
+`;
+
+const Home = styled.div`
+  background-color: ${(props) => props.theme.infoBox};
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin: 10px 0px;
+  border-radius: 50%;
+  position: absolute;
+  left: 0;
+`;
+
+const LinkContainer = styled.div`
+  width: 600px;
+  display: flex;
+  flex-direction: column;
+  background-color: ${(props) => props.theme.infoBox};
+  border-radius: 15px;
+  margin-top: 15px;
+  padding: 15px;
+`;
+
+const ReferenceLink = styled.span``;
+
+const LinkWrapper = styled.div`
+  margin-top: 15px;
+  padding: 0 10px;
+`;
+
+interface IInfoData {
+  id: string;
+  name: string;
+  symbol: string;
+  rank: number;
+  is_new: boolean;
+  is_active: boolean;
+  type: string;
+  logo: string;
+  description: string;
+  message: string;
+  open_source: boolean;
+  started_at: string;
+  development_status: string;
+  hardware_wallet: boolean;
+  proof_type: string;
+  org_structure: string;
+  hash_algorithm: string;
+  links_extended: object;
+  first_data_at: string;
+  last_data_at: string;
+  links: {
+    explorer: string;
+    facebook: string;
+    reddit: string;
+    source_code: string;
+    website: string;
+    youtube: string;
+  };
+}
+
+interface IPriceData {
+  id: string;
+  name: string;
+  symbol: string;
+  rank: number;
+  total_supply: number;
+  max_supply: number;
+  beta_value: number;
+  first_data_at: string;
+  last_updated: string;
+  quotes: {
+    USD: {
+      ath_date: string;
+      ath_price: number;
+      market_cap: number;
+      market_cap_change_24h: number;
+      percent_change_1h: number;
+      percent_change_1y: number;
+      percent_change_6h: number;
+      percent_change_7d: number;
+      percent_change_12h: number;
+      percent_change_15m: number;
+      percent_change_24h: number;
+      percent_change_30d: number;
+      percent_change_30m: number;
+      percent_from_price_ath: number;
+      price: number;
+      volume_24h: number;
+      volume_24h_change_24h: number;
+    };
+  };
+}
 
 function Coin() {
   const { coinId } = useParams<Params>();
-  const [loading, setLoading] = useState(true);
   const { state } = useLocation<State>(); // react router DOM이 보내주는 location에 접근하기 위해선 useLocation()을 사용
-  const [info, setInfo] = useState({});
-  const [priceInfo, setPriceInfo] = useState({});
+  const isChartMatch = useRouteMatch(`/:${coinId}/chart`);
+  const isCandleChartMatch = useRouteMatch(`/:${coinId}/candlechart`);
+  const isPriceMatch = useRouteMatch("/:coinId/price");
 
-  useEffect(() => {
-    (async () => {
-      const infoData = await (
-        await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
-      ).json();
-      const priceData = await (
-        await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
-      ).json();
-      setInfo(infoData);
-      setPriceInfo(priceData);
-    })();
+  // useQuery를 사용하여 info Api를 얻어옴, isLoading의 이름을 infoLoading으로 변경
+  const { isLoading: infoLoading, data: infoData } = useQuery<IInfoData>({
+    queryKey: ["info", coinId],
+    queryFn: () => fetchCoinInfo(coinId),
   });
+
+  // useQuery를 사용하여 price Api를 얻어옴, isLoading을 priceLoading으로 변경
+  const { isLoading: priceLoading, data: priceData } = useQuery<IPriceData>({
+    queryKey: ["ticker", coinId],
+    queryFn: () => fetchCoinTickers(coinId),
+  });
+
+  const loading = infoLoading || priceLoading;
+
   return (
     <Container>
+      <Helmet>
+        <title>{infoData?.name}</title>
+      </Helmet>
       <Header>
-        <Title>{state?.name || "Loading..."}</Title>
+        <Home>
+          <Link to={`/`}>{"<"}</Link>
+        </Home>
+        <div>
+          <Title name={infoData?.name}></Title>
+        </div>
       </Header>
-      {loading ? <div>Loading ...</div> : null}
+      <HeaderWrapper>
+        <InfoBox style={{ width: "150px" }}>
+          <InfoBoxItem>
+            <span>Price</span>
+            <span>{priceData?.quotes.USD.price?.toFixed(2)} $</span>
+          </InfoBoxItem>
+        </InfoBox>
+        <HeaderWrapperLeft>
+          <Img src={`https://static.coinpaprika.com/coin/${coinId}/logo.png`} />
+        </HeaderWrapperLeft>
+        <InfoBox style={{ width: "150px" }}>
+          <InfoBoxItem>
+            <span>Rank</span>
+            <span>{infoData?.rank}</span>
+          </InfoBoxItem>
+        </InfoBox>
+      </HeaderWrapper>
+      {loading ? (
+        "Loading..."
+      ) : (
+        <>
+          <InfoBox style={{ height: "100%", padding: "10px" }}>
+            <InfoBoxItem2>
+              <DescriptionTitle>
+                What is &nbsp;
+                <span
+                  style={{ color: ` ${theme.accentColor}`, fontWeight: "600" }}
+                >
+                  {infoData?.name}
+                </span>
+              </DescriptionTitle>
+              <Description>{infoData?.description}</Description>
+            </InfoBoxItem2>
+          </InfoBox>
+          <Tabs>
+            <Tab isActive={isChartMatch !== null}>
+              <Link to={`/${coinId}/chart`}>Chart</Link>
+            </Tab>
+            <Tab isActive={isCandleChartMatch !== null}>
+              <Link to={`/${coinId}/candlechart`}>Candlechart</Link>
+            </Tab>
+            <Tab isActive={isPriceMatch !== null}>
+              <Link to={`/${coinId}/price`}>Price</Link>
+            </Tab>
+          </Tabs>
+          <Switch>
+            <Route path={`/${coinId}/chart`}>
+              <Chart coinId={coinId} />
+            </Route>
+            <Route path={`/${coinId}/candlechart`}>
+              <CandleChart coinId={coinId} name={state?.name} />
+            </Route>
+            <Route path={`/${coinId}/price`}>
+              <Price coinId={coinId} name={state?.name} price={priceData} />
+            </Route>
+          </Switch>
+          <LinkContainer>
+            <ReferenceLink>Reference Link</ReferenceLink>
+            <LinkWrapper>
+              <LinkURL
+                name={"Code"}
+                color={"black"}
+                url={infoData?.links.source_code[0]}
+                icon={faGithub}
+              />
+              <LinkURL
+                name={"Reddit"}
+                color={"orange"}
+                url={infoData?.links.reddit[0]}
+                icon={faReddit}
+              />{" "}
+              <LinkURL
+                name={"Youtube"}
+                color={"red"}
+                url={infoData?.links.youtube[0]}
+                icon={faYoutube}
+              />
+              <LinkURL
+                name={"FaceBook"}
+                color={"blue"}
+                url={infoData?.links.facebook[0]}
+                icon={faFacebook}
+              />
+              <LinkURL
+                name={"Web Site"}
+                color={"skyblue"}
+                url={infoData?.links.website[0]}
+                icon={faGlobe}
+              />
+            </LinkWrapper>
+          </LinkContainer>
+        </>
+      )}
     </Container>
   );
 }

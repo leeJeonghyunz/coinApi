@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { fetchCoins } from "./api";
+import { useQuery } from "@tanstack/react-query";
+import { Helmet } from "react-helmet";
 
 const Container = styled.div`
   padding: 0px 20px;
-  max-width: 480px;
+  max-width: 600px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 
 const Header = styled.header`
@@ -15,7 +21,12 @@ const Header = styled.header`
   align-items: center;
 `;
 
-const CoinList = styled.ul``;
+const CoinList = styled.ul`
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+`;
 
 const Coin = styled.li`
   background-color: white;
@@ -23,6 +34,11 @@ const Coin = styled.li`
   padding: 20px;
   border-radius: 15px;
   margin-bottom: 10px;
+  width: 150px;
+  height: 150px;
+  cursor: pointer;
+  font-weight: 600;
+
   a {
     transition: color 0.2s ease-in;
     display: flex;
@@ -30,7 +46,6 @@ const Coin = styled.li`
   }
   &:hover {
     color: ${(props) => props.theme.accentColor};
-    font-weight: 600;
   }
 `;
 
@@ -40,12 +55,21 @@ const Title = styled.h1`
 `;
 
 const Img = styled.img`
-  width: 25px;
-  height: 25px;
-  margin-right: 10px;
+  width: 80px;
+  height: 80px;
+  margin-bottom: 10px;
 `;
 
-interface CoinInterface {
+const CoinName = styled.span`
+  max-width: 100px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 20px;
+`;
+
+interface ICoin {
   id: string;
   name: string;
   symbol: string;
@@ -56,28 +80,34 @@ interface CoinInterface {
 }
 
 function Coins() {
-  const [coins, setCoins] = useState<CoinInterface[]>([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    (async () => {
-      const response = await fetch("https://api.coinpaprika.com/v1/coins");
-      const json = await response.json();
-      console.log(json);
-      setCoins(json.slice(0, 100));
-      setLoading(false);
-    })();
-  }, []);
+  const { isLoading, data } = useQuery<ICoin[]>({
+    queryKey: ["allCoins"],
+    queryFn: fetchCoins,
+  });
 
+  // const [coins, setCoins] = useState<ICoin[]>([]);
+  // const [loading, setLoading] = useState(true);
+  // useEffect(() => {
+  //   (async () => {
+  //     const response = await fetch("https://api.coinpaprika.com/v1/coins");
+  //     const json = await response.json();
+  //     setCoins(json.slice(0, 100));
+  //     setLoading(false);
+  //   })();
+  // }, []);
   return (
     <Container>
+      <Helmet>
+        <title>Coins</title>
+      </Helmet>
       <Header>
-        <Title>코인</Title>
+        <Title>Coins</Title>
       </Header>
-      {loading ? (
+      {isLoading ? (
         <div>Loading ...</div>
       ) : (
         <CoinList>
-          {coins.map((coin) => (
+          {data?.map((coin) => (
             <Coin key={coin.id}>
               <Link
                 // obj 형식으로 데이터를 전송
@@ -85,11 +115,15 @@ function Coins() {
                   pathname: `/${coin.id}`,
                   state: { name: coin.name },
                 }}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                }}
               >
                 <Img
                   src={`https://coinicons-api.vercel.app/api/icon/${coin.symbol.toLowerCase()}`}
                 />
-                {coin.name} &rarr;
+                <CoinName>{coin.name}</CoinName>
               </Link>
             </Coin>
           ))}
