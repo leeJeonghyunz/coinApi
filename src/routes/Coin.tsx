@@ -13,7 +13,6 @@ import Title from "./Title";
 import { useQuery } from "@tanstack/react-query";
 import { fetchCoinInfo, fetchCoinTickers } from "./api";
 import { Helmet } from "react-helmet";
-import { theme } from "../theme";
 import CandleChart from "./CandleChart";
 import LinkURL from "./Link";
 import {
@@ -23,6 +22,9 @@ import {
   faGithub,
 } from "@fortawesome/free-brands-svg-icons";
 import { faGlobe } from "@fortawesome/free-solid-svg-icons";
+import { useRecoilValue } from "recoil";
+import { isDarkAtom } from "./atoms";
+import { theme } from "../theme";
 
 interface Params {
   coinId: string;
@@ -120,7 +122,7 @@ const Tabs = styled.div`
 const Tab = styled.div<{ isActive: boolean }>`
   width: 200px;
   height: 50px;
-  background-color: ${(props) => props.theme.infoBox};
+  background-color: ${(props) => (props) => props.theme.infoBox};
   border-radius: 15px;
   font-size: 20px;
   font-weight: 600;
@@ -128,14 +130,16 @@ const Tab = styled.div<{ isActive: boolean }>`
   justify-content: center;
   align-items: center;
   color: ${(props) =>
-    props.isActive ? props.theme.accentColor : props.theme.textColor};
+    props.isActive
+      ? (props) => props.theme.accentColor
+      : (props) => props.theme.textColor};
   &:hover {
-    color: ${(props) => props.theme.accentColor};
+    color: ${(props) => (props) => props.theme.accentColor};
   }
 `;
 
 const Home = styled.div`
-  background-color: ${(props) => props.theme.infoBox};
+  background-color: ${(props) => (props) => props.theme.infoBox};
   width: 30px;
   height: 30px;
   display: flex;
@@ -152,7 +156,7 @@ const LinkContainer = styled.div`
   width: 600px;
   display: flex;
   flex-direction: column;
-  background-color: ${(props) => props.theme.infoBox};
+  background-color: ${(props) => (props) => props.theme.infoBox};
   border-radius: 15px;
   margin-top: 15px;
   padding: 15px;
@@ -230,6 +234,8 @@ interface IPriceData {
 }
 
 function Coin() {
+  const isDark = useRecoilValue(isDarkAtom);
+
   const { coinId } = useParams<Params>();
   const { state } = useLocation<State>(); // react router DOM이 보내주는 location에 접근하기 위해선 useLocation()을 사용
   const isChartMatch = useRouteMatch(`/:${coinId}/chart`);
@@ -248,7 +254,43 @@ function Coin() {
     queryFn: () => fetchCoinTickers(coinId),
   });
 
+  let git;
+  if (infoData?.links?.source_code && infoData.links.source_code[0]) {
+    git = infoData?.links.source_code[0];
+  } else {
+    git = "https://github.com/";
+  }
+
+  let reddit;
+  if (infoData?.links?.reddit && infoData.links.reddit[0]) {
+    reddit = infoData?.links.reddit[0];
+  } else {
+    reddit = "https://www.reddit.com/";
+  }
+
+  let facebook;
+  if (infoData?.links?.facebook && infoData.links.facebook[0]) {
+    facebook = infoData?.links.facebook[0];
+  } else {
+    facebook = "https://www.facebook.com/";
+  }
+
+  let youtube;
+  if (infoData?.links?.youtube && infoData.links.youtube[0]) {
+    youtube = infoData?.links.youtube[0];
+  } else {
+    youtube = "https://www.youtube.com/";
+  }
+
+  let website;
+  if (infoData?.links?.website && infoData.links.website[0]) {
+    website = infoData?.links.website[0];
+  } else {
+    website = "https://www.google.com/";
+  }
+
   const loading = infoLoading || priceLoading;
+  console.log(infoData);
 
   return (
     <Container>
@@ -289,7 +331,10 @@ function Coin() {
               <DescriptionTitle>
                 What is &nbsp;
                 <span
-                  style={{ color: ` ${theme.accentColor}`, fontWeight: "600" }}
+                  style={{
+                    color: ` ${theme.accentColor}`,
+                    fontWeight: "600",
+                  }}
                 >
                   {infoData?.name}
                 </span>
@@ -325,32 +370,32 @@ function Coin() {
               <LinkURL
                 name={"Code"}
                 color={"black"}
-                url={infoData?.links.source_code[0]}
                 icon={faGithub}
+                url={git}
               />
               <LinkURL
                 name={"Reddit"}
                 color={"orange"}
-                url={infoData?.links.reddit[0]}
                 icon={faReddit}
+                url={reddit}
               />{" "}
               <LinkURL
                 name={"Youtube"}
                 color={"red"}
-                url={infoData?.links.youtube[0]}
                 icon={faYoutube}
+                url={youtube}
               />
               <LinkURL
                 name={"FaceBook"}
                 color={"blue"}
-                url={infoData?.links.facebook[0]}
                 icon={faFacebook}
+                url={facebook}
               />
               <LinkURL
                 name={"Web Site"}
                 color={"skyblue"}
-                url={infoData?.links.website[0]}
                 icon={faGlobe}
+                url={website}
               />
             </LinkWrapper>
           </LinkContainer>

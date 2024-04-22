@@ -21,14 +21,14 @@ const LinkName = styled.span`
 interface ILinkURL {
   name: string;
   color: string;
-  url: string | undefined;
   icon: any;
+  url: string;
 }
 
-function LinkURL({ name, color, url, icon }: ILinkURL) {
+function LinkURL({ name, color, icon, url }: ILinkURL) {
   return (
     <>
-      {url ? (
+      {name ? (
         <a href={url} target="blank">
           <LinkBox>
             <FontAwesomeIcon

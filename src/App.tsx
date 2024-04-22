@@ -1,6 +1,7 @@
-import { createGlobalStyle } from "styled-components";
+import { ThemeProvider, createGlobalStyle } from "styled-components";
 import Router from "./routes/Router";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { theme } from "./theme";
 
 const GlobalStyle = createGlobalStyle`
 @import url('https://fonts.googleapis.com/css2?family=Kode+Mono:wght@400..700&display=swap');
@@ -52,8 +53,8 @@ const GlobalStyle = createGlobalStyle`
   }
   body{
     font-family: "Kode Mono", monospace;
-    background-color: ${(props) => props.theme.bgColor};
-    color: ${(props) => props.theme.textColor}
+    background-color: ${theme.bgColor};
+    color: ${theme.textColor}
   }
   a{
     text-decoration:none;
@@ -64,9 +65,11 @@ const GlobalStyle = createGlobalStyle`
 function App() {
   return (
     <>
-      <GlobalStyle />
-      <Router />
-      <ReactQueryDevtools initialIsOpen={true} />
+      <ThemeProvider theme={theme}>
+        <GlobalStyle />
+        <Router />
+        <ReactQueryDevtools initialIsOpen={true} />
+      </ThemeProvider>
     </>
   );
 }

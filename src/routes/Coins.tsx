@@ -121,7 +121,7 @@ function Coins() {
                 }}
               >
                 <Img
-                  src={`https://coinicons-api.vercel.app/api/icon/${coin.symbol.toLowerCase()}`}
+                  src={`https://static.coinpaprika.com/coin/${coin.id}/logo.png`}
                 />
                 <CoinName>{coin.name}</CoinName>
               </Link>
