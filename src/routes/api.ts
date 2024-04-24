@@ -19,8 +19,6 @@ export function fetchCoinTickers(coinId: string) {
 }
 
 export function fetchCoinChart(coinId: string) {
-  const endDate = Math.floor(Date.now() / 1000); // ms단위의 현재 시각을 1000으로 나눈 후 소수점 버림
-  const startDate = endDate - 60 * 60 * 24 * 7; // 일주일 전만큼 빼기
   return fetch(
     `https://ohlcv-api.nomadcoders.workers.dev?coinId=${coinId}` // 코인파프리카 유료화..
   ).then((response) => response.json());
