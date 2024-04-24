@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { fetchCoins } from "./api";
 import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet";
+import { useMediaQuery } from "react-responsive";
 
 const Container = styled.div`
   padding: 0px 20px;
@@ -12,6 +13,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100vw;
 `;
 
 const Header = styled.header`
@@ -21,28 +23,32 @@ const Header = styled.header`
   align-items: center;
 `;
 
-const CoinList = styled.ul`
+const CoinList = styled.ul<{ isMobile: boolean }>`
   padding: 0;
-  display: grid;
+  display: ${(props) => (props.isMobile ? "flex" : "grid")};
+  flex-direction: column;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+  width: 100%;
 `;
 
-const Coin = styled.li`
+const Coin = styled.li<{ isMobile: boolean }>`
   background-color: white;
   color: ${(props) => props.theme.bgColor};
   padding: 20px;
   border-radius: 15px;
   margin-bottom: 10px;
-  width: 150px;
-  height: 150px;
+  width: ${(props) => (props.isMobile ? "100%" : "150px")};
+  height: ${(props) => (props.isMobile ? "100%" : "150px")};
   cursor: pointer;
   font-weight: 600;
-
+  display: ${(props) => (props.isMobile ? "flex" : "")};
+  flex-direction: row;
   a {
     transition: color 0.2s ease-in;
     display: flex;
     align-items: center;
+    width: 100%;
   }
   &:hover {
     color: ${(props) => props.theme.accentColor};
@@ -54,10 +60,11 @@ const Title = styled.h1`
   color: ${(props) => props.theme.accentColor};
 `;
 
-const Img = styled.img`
-  width: 80px;
-  height: 80px;
+const Img = styled.img<{ isMobile: boolean }>`
   margin-bottom: 10px;
+  width: ${(props) => (props.isMobile ? "30px" : "80px")};
+  height: ${(props) => (props.isMobile ? "30px" : "80px")};
+  display: block;
 `;
 
 const CoinName = styled.span`
@@ -85,16 +92,10 @@ function Coins() {
     queryFn: fetchCoins,
   });
 
-  // const [coins, setCoins] = useState<ICoin[]>([]);
-  // const [loading, setLoading] = useState(true);
-  // useEffect(() => {
-  //   (async () => {
-  //     const response = await fetch("https://api.coinpaprika.com/v1/coins");
-  //     const json = await response.json();
-  //     setCoins(json.slice(0, 100));
-  //     setLoading(false);
-  //   })();
-  // }, []);
+  const isMobile = useMediaQuery({
+    query: "(max-width:767px)",
+  });
+
   return (
     <Container>
       <Helmet>
@@ -106,9 +107,9 @@ function Coins() {
       {isLoading ? (
         <div>Loading ...</div>
       ) : (
-        <CoinList>
+        <CoinList isMobile={isMobile}>
           {data?.map((coin) => (
-            <Coin key={coin.id}>
+            <Coin isMobile={isMobile} key={coin.id}>
               <Link
                 // obj 형식으로 데이터를 전송
                 to={{
@@ -121,6 +122,7 @@ function Coins() {
                 }}
               >
                 <Img
+                  isMobile={isMobile}
                   src={`https://static.coinpaprika.com/coin/${coin.id}/logo.png`}
                 />
                 <CoinName>{coin.name}</CoinName>

@@ -22,9 +22,8 @@ import {
   faGithub,
 } from "@fortawesome/free-brands-svg-icons";
 import { faGlobe } from "@fortawesome/free-solid-svg-icons";
-import { useRecoilValue } from "recoil";
-import { isDarkAtom } from "./atoms";
 import { theme } from "../theme";
+import { useMediaQuery } from "react-responsive";
 
 interface Params {
   coinId: string;
@@ -34,9 +33,9 @@ interface State {
   name: string;
 }
 
-const Container = styled.div`
+const Container = styled.div<{ isMobile: boolean }>`
   padding: 10px 20px;
-  max-width: 600px;
+  max-width: ${(props) => (props.isMobile ? "" : "600px")};
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -44,11 +43,13 @@ const Container = styled.div`
   justify-content: center;
 `;
 
-const HeaderWrapper = styled.div`
-  width: 600px;
+const HeaderWrapper = styled.div<{ isMobile?: boolean }>`
+  width: ${(props) => (props.isMobile ? "300px" : "600px")};
   display: flex;
+  flex-direction: ${(props) => (props.isMobile ? "row" : "row")};
   justify-content: space-between;
   align-items: center;
+  width: 100%;
 `;
 
 const HeaderWrapperLeft = styled.div`
@@ -100,8 +101,8 @@ const InfoBoxItem2 = styled.div`
   flex-direction: column;
 `;
 
-const DescriptionTitle = styled.div`
-  width: 580px;
+const DescriptionTitle = styled.div<{ isMobile: boolean }>`
+  width: ${(props) => (props.isMobile ? "100%" : "580px")};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -113,8 +114,8 @@ const Description = styled.p`
   word-break: break-all;
 `;
 
-const Tabs = styled.div`
-  width: 600px;
+const Tabs = styled.div<{ isMobile: boolean }>`
+  width: ${(props) => (props.isMobile ? "100%" : "580px")};
   display: flex;
   justify-content: space-between;
 `;
@@ -152,8 +153,8 @@ const Home = styled.div`
   left: 0;
 `;
 
-const LinkContainer = styled.div`
-  width: 600px;
+const LinkContainer = styled.div<{ isMobile: boolean }>`
+  width: ${(props) => (props.isMobile ? "100%" : "580px")};
   display: flex;
   flex-direction: column;
   background-color: ${(props) => (props) => props.theme.infoBox};
@@ -234,8 +235,15 @@ interface IPriceData {
 }
 
 function Coin() {
-  const isDark = useRecoilValue(isDarkAtom);
-
+  const isPc = useMediaQuery({
+    query: "(min-width:1024px)",
+  });
+  const isTablet = useMediaQuery({
+    query: "(min-width:768px) and (max-width:1023px)",
+  });
+  const isMobile = useMediaQuery({
+    query: "(max-width:767px)",
+  });
   const { coinId } = useParams<Params>();
   const { state } = useLocation<State>(); // react router DOM이 보내주는 location에 접근하기 위해선 useLocation()을 사용
   const isChartMatch = useRouteMatch(`/:${coinId}/chart`);
@@ -290,10 +298,9 @@ function Coin() {
   }
 
   const loading = infoLoading || priceLoading;
-  console.log(infoData);
 
   return (
-    <Container>
+    <Container isMobile={isMobile}>
       <Helmet>
         <title>{infoData?.name}</title>
       </Helmet>
@@ -305,7 +312,7 @@ function Coin() {
           <Title name={infoData?.name}></Title>
         </div>
       </Header>
-      <HeaderWrapper>
+      <HeaderWrapper isMobile={isMobile}>
         <InfoBox style={{ width: "150px" }}>
           <InfoBoxItem>
             <span>Price</span>
@@ -326,9 +333,15 @@ function Coin() {
         "Loading..."
       ) : (
         <>
-          <InfoBox style={{ height: "100%", padding: "10px" }}>
+          <InfoBox
+            style={{
+              height: "100%",
+              padding: "10px",
+              width: isMobile ? "100%" : "",
+            }}
+          >
             <InfoBoxItem2>
-              <DescriptionTitle>
+              <DescriptionTitle isMobile={isMobile}>
                 What is &nbsp;
                 <span
                   style={{
@@ -342,7 +355,7 @@ function Coin() {
               <Description>{infoData?.description}</Description>
             </InfoBoxItem2>
           </InfoBox>
-          <Tabs>
+          <Tabs isMobile={isMobile}>
             <Tab isActive={isChartMatch !== null}>
               <Link to={`/${coinId}/chart`}>Chart</Link>
             </Tab>
@@ -364,7 +377,7 @@ function Coin() {
               <Price coinId={coinId} name={state?.name} price={priceData} />
             </Route>
           </Switch>
-          <LinkContainer>
+          <LinkContainer isMobile={isMobile}>
             <ReferenceLink>Reference Link</ReferenceLink>
             <LinkWrapper>
               <LinkURL
