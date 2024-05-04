@@ -4,7 +4,7 @@
 
 ## 😀 Introduce
 
-CoinPaprika 란 사이트의 api를 활용하여 코인 정보 사이트를 제작했습니다.
+CoinPaprika 란 사이트의 api를 활용하여 코인 정보 사이트를 제작했습니다. 💰
 
 ## 🔍 Detail
 
